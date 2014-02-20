@@ -4,10 +4,12 @@ import (
         "flag"
         "time"
         "log"
+	"io"
         "io/ioutil"
 	"net/smtp"
 	"net/mail"
 	"strings"
+	"bytes"
 	"os"
 	"path"
 	"path/filepath"
@@ -87,6 +89,27 @@ func try_again(file string, msg *mail.Message) {
 	mail_status := status[file]
 
 	// rebuild message (strip Bcc)
+	var buffer bytes.Buffer
+	for key,_ := range msg.Header {
+		if key == "Bcc" {
+			continue
+		}
+		log.Println(key)
+		buffer.WriteString(key)
+		buffer.WriteString(": ")
+		header_line := strings.Join(msg.Header[key], ",")
+		buffer.WriteString(header_line)
+		buffer.WriteString("\r\n")
+	}
+
+	buffer.WriteString("\r\n")
+	_, err := io.Copy(&buffer, msg.Body)
+	if (err != nil) {
+		log.Println(file,"unable to reassemble the mail message", err);
+		return
+	}
+
+	b := buffer.Bytes()
 
 	// manage To
 	for i, send_status := range mail_status.To {
@@ -97,8 +120,7 @@ func try_again(file string, msg *mail.Message) {
 				if send_status.NextAttempt.Equal(time.Now()) == true || send_status.NextAttempt.Before(time.Now()) == true {
 					// do not use send_status here !!!
 					mail_status.To[i].Status = 1
-					body := []byte(string("hello"))
-					go send_mail(&mail_status.To[i], file, mail_status.From, send_status.Address, &body)
+					go send_mail(&mail_status.To[i], file, mail_status.From, send_status.Address, &b)
 				}
 			case 1:
 				in_progress = true
@@ -114,8 +136,7 @@ func try_again(file string, msg *mail.Message) {
 				if send_status.NextAttempt.Equal(time.Now()) == true || send_status.NextAttempt.Before(time.Now()) == true {
 					// do not use send_status here !!!
 					mail_status.Cc[i].Status = 1
-					body := []byte(string("hello"))
-					go send_mail(&mail_status.Cc[i], file, mail_status.From, send_status.Address, &body)
+					go send_mail(&mail_status.Cc[i], file, mail_status.From, send_status.Address, &b)
 				}
 			case 1:
 				in_progress = true
@@ -131,8 +152,7 @@ func try_again(file string, msg *mail.Message) {
 				if send_status.NextAttempt.Equal(time.Now()) == true || send_status.NextAttempt.Before(time.Now()) == true {
 					// do not use send_status here !!!
 					mail_status.Bcc[i].Status = 1
-					body := []byte(string("hello"))
-					go send_mail(&mail_status.Bcc[i], file, mail_status.From, send_status.Address, &body)
+					go send_mail(&mail_status.Bcc[i], file, mail_status.From, send_status.Address, &b)
 				}
 			case 1:
 				in_progress = true
