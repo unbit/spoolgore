@@ -77,9 +77,9 @@ func send_mail(ss *SentStatus, file string, from string, to string, msg *[]byte)
 			ss.Status = 2
 		}
 		if (ss.Attempts > 30) {
-			ss.NextAttempt = ss.NextAttempt.Add(time.Duration(30) * time.Duration(60) * time.Second)
+			ss.NextAttempt = time.Now().Add(time.Duration(30) * time.Duration(60) * time.Second)
 		} else {
-			ss.NextAttempt = ss.NextAttempt.Add(time.Duration(ss.Attempts) * time.Duration(60) * time.Second)
+			ss.NextAttempt = time.Now().Add(time.Duration(ss.Attempts) * time.Duration(60) * time.Second)
 		}
 		return
 	}
