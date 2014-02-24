@@ -21,6 +21,11 @@ type Config struct {
 	SmtpAddr string
 	SmtpUser string
 	SmtpPassword string
+	PlainUser string
+	PlainPassword string
+	MD5User string
+	MD5Password string
+	SmtpAuth smtp.Auth
 	Freq int
 	MaxAttempts int
 	JsonPath string
@@ -54,6 +59,10 @@ var status map[string]MailStatus
 
 func parse_options() {
 	flag.StringVar(&config.SmtpAddr, "smtpaddr", "127.0.0.1:25", "address of the smtp address to use in the addr:port format")
+	flag.StringVar(&config.PlainUser, "smtpuser", "", "username for smtp plain authentication")
+	flag.StringVar(&config.PlainPassword, "smtppassword", "", "password for smtp plain authentication")
+	flag.StringVar(&config.MD5User, "smtpmd5user", "", "username for smtp cram md5 authentication")
+	flag.StringVar(&config.MD5Password, "smtpmd5password", "", "password for smtp cram md5 authentication")
 	flag.IntVar(&config.Freq, "freq", 10, "frequency of spool directory scans")
 	flag.IntVar(&config.MaxAttempts, "attempts", 100, "max attempts for failed SMTP transactions before giving up")
 	flag.StringVar(&config.JsonPath, "json", "", "path of the json status file")
@@ -67,7 +76,7 @@ func parse_options() {
 func send_mail(ss *SentStatus, file string, from string, to string, msg *[]byte) {
 	log.Println(file,"sending mail to", to, "attempt:", ss.Attempts)
 	dest := []string{to}
-	err := smtp.SendMail(config.SmtpAddr, nil, from, dest, *msg)
+	err := smtp.SendMail(config.SmtpAddr, config.SmtpAuth, from, dest, *msg)
 	if err != nil {
 		log.Println(file,"SMTP error, mail to", to, err)
 		ss.Status = 0
@@ -330,6 +339,11 @@ func scan_spooldir(dir string) {
 
 func main() {
 	parse_options()
+	if config.PlainUser != "" {
+		config.SmtpAuth = smtp.PlainAuth("", config.PlainUser, config.PlainPassword, strings.Split(config.SmtpAddr, ":")[0])
+	} else if config.MD5User != "" {
+		config.SmtpAuth = smtp.CRAMMD5Auth(config.MD5User, config.MD5Password)
+	}
 	log.Println("--- starting spoolgore on directory", config.SpoolDir, "---")
 	if config.JsonPath == "" {
 		config.JsonPath = path.Join(config.SpoolDir, ".spoolgore.js")
