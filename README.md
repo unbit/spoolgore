@@ -37,4 +37,4 @@ MTA (and similar) tend to spawn an additional process for each SMTP transaction.
 
 Go (thanks to goroutines) allows us to enqueue hundreds of SMTP transactions at the cost of few KB of memory.
 
-Obviously we could have written it in python/gevent or perl/coro::anyevent or whatever non-blocking coroutine/based technology you like, but we choose go as we wanted to give a try to it (yes, no other reasons)
+Obviously we could have written it in python/gevent or perl/coro::anyevent or whatever non-blocking coroutine/based technology you like, but we choose go as we wanted to give it a try (yes, no other reasons)
