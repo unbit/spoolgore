@@ -5,7 +5,7 @@ A simple mail "spool and send" daemon written in Go
 
 
 ```sh
-spoolgore --smtpaddr example.com:25 /var/spool/yourapp
+spoolgore -smtpaddr example.com:25 /var/spool/yourapp
 ```
 
 Why ?
