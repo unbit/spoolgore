@@ -14,6 +14,8 @@ import (
 	"path"
 	"path/filepath"
 	"encoding/json"
+	"os/signal"
+	"syscall"
 )
 
 type Config struct {
@@ -96,6 +98,27 @@ func send_mail(ss *SentStatus, file string, from string, to string, msg *[]byte)
 	log.Println(file, "successfully sent to", to)
 }
 
+func spool_flush() {
+	num := 0
+	now := time.Now()
+	for key, _ := range status {
+		for i, _ := range status[key].To {
+			status[key].To[i].NextAttempt = now
+			num += 1
+                }
+		for i, _ := range status[key].Cc {
+			status[key].Cc[i].NextAttempt = now
+			num += 1
+                }
+		for i, _ := range status[key].Bcc {
+			status[key].Bcc[i].NextAttempt = now
+			num += 1
+                }
+	}
+	log.Printf("spool directory flushed (%d messages in the queue)", num)
+	scan_spooldir(config.SpoolDir)
+}
+
 func read_json(file string) {
 	f, err := os.Open(file)
 	if err != nil {
@@ -147,16 +170,34 @@ func write_json(file string, j []byte) {
 	f.Close()
 }
 
-func try_again(file string, msg *mail.Message) {
+func check_status() {
+	changed := false
+	for key, _ := range status {
+		if _, err := os.Stat(key); os.IsNotExist(err) {
+			delete(status, key)
+			changed = true
+		}
+	}
 
+	if changed == true {
+		update_json()
+	}
+}
+
+func update_json() {
 	// update status
 	js, err := json.MarshalIndent(status, "", "\t")
 	if err != nil {
-		log.Println(file, err)
+		log.Println(err)
 	} else {
 		// here we save the file
 		write_json(config.JsonPath, js)
 	}
+}
+
+func try_again(file string, msg *mail.Message) {
+
+	update_json()
 
 	in_progress := false
 
@@ -176,7 +217,7 @@ func try_again(file string, msg *mail.Message) {
 	}
 
 	buffer.WriteString("\r\n")
-	_, err = io.Copy(&buffer, msg.Body)
+	_, err := io.Copy(&buffer, msg.Body)
 	if (err != nil) {
 		log.Println(file,"unable to reassemble the mail message", err);
 		return
@@ -243,6 +284,7 @@ func try_again(file string, msg *mail.Message) {
 		}
 		// ok we can now remove the item from the status
 		delete(status, file)
+		update_json()
 	}
 }
 
@@ -335,6 +377,9 @@ func scan_spooldir(dir string) {
 		}
 		parse_mail(path.Clean(abs))
 	}
+
+	// cleanup the json often
+	check_status()
 }
 
 func main() {
@@ -344,18 +389,37 @@ func main() {
 	} else if config.MD5User != "" {
 		config.SmtpAuth = smtp.CRAMMD5Auth(config.MD5User, config.MD5Password)
 	}
-	log.Println("--- starting spoolgore on directory", config.SpoolDir, "---")
+	log.Printf("--- starting Spoolgore (pid: %d) on directory %s ---", os.Getpid(), config.SpoolDir)
 	if config.JsonPath == "" {
 		config.JsonPath = path.Join(config.SpoolDir, ".spoolgore.js")
 	}
 	status = make(map[string]MailStatus)
 	read_json(config.JsonPath)
 	timer := time.NewTimer(time.Second * time.Duration(config.Freq))
+	urg := make(chan os.Signal, 1)
+	hup := make(chan os.Signal, 1)
+	tstp := make(chan os.Signal, 1)
+	signal.Notify(urg, syscall.SIGURG)
+	signal.Notify(hup, syscall.SIGHUP)
+	signal.Notify(tstp, syscall.SIGTSTP)
+	blocked := false
 	for {
 		select {
 			case <- timer.C:
-				scan_spooldir(config.SpoolDir)
+				if blocked == false {
+					scan_spooldir(config.SpoolDir)
+				}
 				timer.Reset(time.Second * time.Duration(config.Freq))
+			case <-urg:
+				spool_flush()
+				blocked = false
+			case <-hup:
+				read_json(config.JsonPath)
+				blocked = false
+				log.Println("status reloaded")
+			case <-tstp:
+				blocked = true
+				log.Println("Spoolgore is suspended, send SIGHUP or SIGURG to unpause it")
 		}
 	}
 }
