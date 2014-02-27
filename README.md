@@ -5,7 +5,18 @@ A simple mail "spool and send" daemon written in Go
 
 
 ```sh
+# send every mail spooled to /var/spool/yourapp via example.com smtp service
 spoolgore -smtpaddr example.com:25 /var/spool/yourapp
+```
+
+```sh
+# send every mail spooled to /var/spool/yourapp via foobar.it smtp service using plain authentication
+spoolgore -smtpaddr foobar.it:25 -smtpuser kratos -smtppassword deimos /var/spool/yourapp
+```
+
+```sh
+# send every mail spooled to /var/spool/yourapp via example.com smtp service, do not try for more than 30 times on smtp error
+spoolgore -smtpaddr example.com:25 -attempts 30 /var/spool/yourapp
 ```
 
 Why ?
