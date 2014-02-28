@@ -46,6 +46,7 @@ type SentStatus struct {
 	Status int
 	Attempts int
 	NextAttempt time.Time
+	Error string
 }
 
 type MailStatus struct {
@@ -83,6 +84,7 @@ func send_mail(ss *SentStatus, file string, from string, to string, msg *[]byte)
 		log.Println(file,"SMTP error, mail to", to, err)
 		ss.Status = 0
 		ss.Attempts++
+		ss.Error = err.Error()
 		if ss.Attempts >= config.MaxAttempts {
 			log.Println(file, "max SMTP attempts reached for",to, "... giving up")
 			ss.Status = 2
@@ -95,6 +97,7 @@ func send_mail(ss *SentStatus, file string, from string, to string, msg *[]byte)
 		return
 	}
 	ss.Status = 2
+	ss.Error = ""
 	log.Println(file, "successfully sent to", to)
 }
 
