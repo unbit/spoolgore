@@ -85,6 +85,11 @@ Go (thanks to goroutines) allows us to enqueue hundreds of SMTP transactions at 
 
 Obviously we could have written it in python/gevent or perl/coro::anyevent or whatever non-blocking coroutine/based technology you like, but we choose go as we wanted to give it a try (yes, no other reasons)
 
+TODO
+====
+
+implement rate limiter (lot of services limit the number of emails you can enqueue per minute/hour)
+
 Issues
 ======
 
