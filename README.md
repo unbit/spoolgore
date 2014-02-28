@@ -3,6 +3,18 @@ Spoolgore
 
 A simple mail "spool and send" daemon written in Go
 
+Building it
+===========
+
+```sh
+go build spoolgore.go
+```
+
+that's all...
+
+Using it
+========
+
 
 ```sh
 # send every mail spooled to /var/spool/yourapp via example.com smtp service
