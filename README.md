@@ -79,7 +79,7 @@ Spoolgore tries to address the problem in the easiest possible way.
 Why Go ?
 ========
 
-MTA (and similar) tend to spawn an additional process for each SMTP transaction. This is good (and holy) for privileges separation, but spoolgore is meant to be run by each user (or single application stack) so we do not need this kind of isolation in SMTP transactions.
+MTAs (and similar) tend to spawn an additional process for each SMTP transaction. This is good (and holy) for privileges separation, but spoolgore is meant to be run by each user (or single application stack) so we do not need this kind of isolation in SMTP transactions.
 
 Go (thanks to goroutines) allows us to enqueue hundreds of SMTP transactions at the cost of few KB of memory.
 
