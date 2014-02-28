@@ -72,7 +72,7 @@ Sending e-mails from your app via remote smtp can be a huge problem: if your smt
 
 "spool and send" daemons allow you to store the email as a simple file on a directory (the 'spool' directory), while a background daemon will send it as soon as possible, taking care to retry on any error.
 
-Project like nullmailer (http://untroubled.org/nullmailer/) work well, but they are somewhat limited (in the nullmailer case having multiple instances running on the system requires patching).
+Projects like nullmailer (http://untroubled.org/nullmailer/) work well, but they are somewhat limited (in the nullmailer case having multiple instances running on the system requires patching).
 
 Spoolgore tries to address the problem in the easiest possible way.
 
