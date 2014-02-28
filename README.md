@@ -84,3 +84,8 @@ MTAs (and similar) tend to spawn an additional process for each SMTP transaction
 Go (thanks to goroutines) allows us to enqueue hundreds of SMTP transactions at the cost of few KB of memory.
 
 Obviously we could have written it in python/gevent or perl/coro::anyevent or whatever non-blocking coroutine/based technology you like, but we choose go as we wanted to give it a try (yes, no other reasons)
+
+Issues
+======
+
+windows is not supported, if you want to use Spoolgore on it, just patch the code to not use syscall.SIGURG and syscall.SIGTSTP
