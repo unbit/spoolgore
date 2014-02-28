@@ -19,6 +19,18 @@ spoolgore -smtpaddr foobar.it:25 -smtpuser kratos -smtppassword deimos /var/spoo
 spoolgore -smtpaddr example.com:25 -attempts 30 /var/spool/yourapp
 ```
 
+JSON status file
+================
+
+Signals
+=======
+
+SIGURG -> suddenly re-scan the queue
+
+SIGHUP -> reload the json status file
+
+SIGTSTP -> block queue scan, useful for manually updating the json status
+
 Why ?
 =====
 
