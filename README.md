@@ -19,6 +19,40 @@ spoolgore -smtpaddr foobar.it:25 -smtpuser kratos -smtppassword deimos /var/spoo
 spoolgore -smtpaddr example.com:25 -attempts 30 /var/spool/yourapp
 ```
 
+JSON status file
+================
+
+During its lifecycle, Spoolgore constantly updates a json file with its internal status. You can simply view that file
+to understand what is going on. By default the file is stored as .spoolgore.js in your spool directory, but you can change its path with the -json option.
+
+Options
+=======
+
+-smtpaddr
+
+-smtpuser
+
+-smtppassword
+
+-smtpmd5user
+
+-smtpmd5password
+
+-freq
+
+-attempts
+
+-json
+
+Signals
+=======
+
+SIGURG -> suddenly re-scan the queue
+
+SIGHUP -> reload the json status file
+
+SIGTSTP -> block queue scan, useful for manually updating the json status
+
 Why ?
 =====
 
