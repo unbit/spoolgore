@@ -1,11 +1,11 @@
 package main
 
 import (
-        "flag"
-        "time"
-        "log"
+	"flag"
+	"time"
+	"log"
 	"io"
-        "io/ioutil"
+	"io/ioutil"
 	"net/smtp"
 	"net/mail"
 	"strings"
@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"os/signal"
 	"syscall"
+	"crypto/sha512"
 )
 
 type Config struct {
@@ -108,15 +109,15 @@ func spool_flush() {
 		for i, _ := range status[key].To {
 			status[key].To[i].NextAttempt = now
 			num += 1
-                }
+				}
 		for i, _ := range status[key].Cc {
 			status[key].Cc[i].NextAttempt = now
 			num += 1
-                }
+				}
 		for i, _ := range status[key].Bcc {
 			status[key].Bcc[i].NextAttempt = now
 			num += 1
-                }
+				}
 	}
 	log.Printf("spool directory flushed (%d messages in the queue)", num)
 	scan_spooldir(config.SpoolDir)
