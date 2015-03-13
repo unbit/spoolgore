@@ -16,7 +16,7 @@ import (
 	"encoding/json"
 	"os/signal"
 	"syscall"
-	"crypto/sha512"
+	_ "crypto/sha512"
 )
 
 type Config struct {
